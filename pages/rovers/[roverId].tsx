@@ -1,14 +1,31 @@
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Manifest from "../../components/manifest";
+import axios from "axios";
 const RoverDetail = () => {
   const router = useRouter();
   const [viewManifest, setViewManifest] = useState(false);
+  const [manifestData, setManifestData] = useState({});
+  const { roverId } = router.query;
+  useEffect(() => {
+    if (viewManifest && roverId) {
+      axios
+        .get(
+          `https://api.nasa.gov/mars-photos/api/v1/manifests/${roverId}?api_key=${process.env.NEXT_PUBLIC_NASA_API_KEY}`
+        )
+        .then((res) => {
+          setManifestData(res.data.photo_manifest);
+          console.log(manifestData);
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    }
+  }, [viewManifest, roverId]);
 
   const handleToggle = () => {
     setViewManifest(!viewManifest);
   };
-  const { roverId } = router.query;
   return (
     <section className="flex flex-col flex-grow">
       <div className="flex flex-row mt-5 ml-4 w-full justify-around  mb-10">
@@ -27,7 +44,11 @@ const RoverDetail = () => {
         </button>
       </div>
       <div>
-        <Manifest roverName={roverId} display={viewManifest} />
+        <Manifest
+          roverName={roverId}
+          display={viewManifest}
+          manifestData={manifestData}
+        />
       </div>
     </section>
   );
